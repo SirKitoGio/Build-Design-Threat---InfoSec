@@ -1,0 +1,487 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,500;6..72,600;6..72,700&display=swap');
+
+:root {
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --surface-soft: #f9f9f8;
+  --ink: #2f3437;
+  --ink-strong: #111111;
+  --muted: #787774;
+  --line: #eaeaea;
+  --pale-red-bg: #fdebec;
+  --pale-red: #9f2f2d;
+  --pale-blue-bg: #e1f3fe;
+  --pale-blue: #1f6c9f;
+  --pale-green-bg: #edf3ec;
+  --pale-green: #346538;
+  --pale-yellow-bg: #fbf3db;
+  --pale-yellow: #956400;
+  --radius: 10px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Ambient depth — fixed, non-interactive, very low opacity */
+.ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 50% 40% at 12% 8%, rgba(149, 100, 0, 0.035), transparent 60%),
+    radial-gradient(ellipse 45% 35% at 88% 12%, rgba(31, 108, 159, 0.03), transparent 55%);
+  animation: drift 28s var(--ease) infinite alternate;
+}
+
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(12px, -8px, 0); }
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--ink-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: var(--pale-blue);
+}
+
+h1,
+h2,
+h3 {
+  font-family: Newsreader, Georgia, 'Times New Roman', serif;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--ink-strong);
+  margin: 0 0 0.5rem;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+}
+
+h2 {
+  font-size: 1.35rem;
+}
+
+h3 {
+  font-size: 1.1rem;
+}
+
+.shell {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 48px clamp(20px, 4vw, 40px) 80px;
+}
+
+.auth-shell {
+  max-width: 440px;
+  padding-top: 72px;
+}
+
+.brand-block {
+  margin-bottom: 32px;
+}
+
+.eyebrow {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+.tagline {
+  color: var(--muted);
+  margin: 8px 0 0;
+  font-size: 15px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 28px 28px 32px;
+  box-shadow: 0 0 0 transparent;
+  transition: box-shadow 200ms ease;
+  animation: rise 600ms var(--ease) both;
+}
+
+.panel:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.panel-delay-1 { animation-delay: 80ms; }
+.panel-delay-2 { animation-delay: 160ms; }
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.25rem;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+  animation: rise 600ms var(--ease) both;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 16px;
+}
+
+@media (max-width: 860px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+input,
+textarea,
+select {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  padding: 11px 12px;
+  transition: border-color 150ms ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #cfcfcf;
+}
+
+button {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+button:hover {
+  background: var(--surface-soft);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button.primary {
+  background: var(--ink-strong);
+  border-color: var(--ink-strong);
+  color: #fff;
+  font-weight: 500;
+}
+
+button.primary:hover {
+  background: #333;
+  border-color: #333;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tabs button {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 10px 14px;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tabs button.active {
+  color: var(--ink-strong);
+  border-bottom-color: var(--ink-strong);
+  font-weight: 500;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* Status badges — pills OK only for small tags */
+.pill {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  padding: 4px 10px;
+  background: var(--pale-blue-bg);
+  color: var(--pale-blue);
+  border: none;
+}
+
+.pill.warn {
+  background: var(--pale-yellow-bg);
+  color: var(--pale-yellow);
+}
+
+.pill.ok {
+  background: var(--pale-green-bg);
+  color: var(--pale-green);
+}
+
+.pill.danger {
+  background: var(--pale-red-bg);
+  color: var(--pale-red);
+}
+
+.event-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+}
+
+.event-list li {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+  animation: rise 600ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 80ms);
+}
+
+.event-list button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 4px 0;
+  border-radius: 0;
+}
+
+.event-list button:hover {
+  background: transparent;
+  color: var(--pale-blue);
+}
+
+.qr-wrap {
+  display: inline-flex;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.mono,
+.mono a,
+code,
+kbd {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.mono {
+  word-break: break-all;
+  color: var(--muted);
+}
+
+code,
+kbd {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.meta,
+.muted,
+.hint {
+  color: var(--muted);
+}
+
+.hint {
+  font-size: 13px;
+  margin-top: 18px;
+  line-height: 1.55;
+}
+
+.error {
+  color: var(--pale-red);
+  background: var(--pale-red-bg);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  margin-top: 16px;
+}
+
+.ok {
+  color: var(--pale-green);
+  background: var(--pale-green-bg);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.mt {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.org-mark {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
+.scanner-view {
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.scanner-view.is-on {
+  min-height: 40px;
+  margin-bottom: 12px;
+}
+
+.scanner-view video {
+  width: 100%;
+  max-width: 360px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.scanner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.scanner-cta {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+}
+
+button.text-link {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 12px 0 0;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+button.text-link:hover {
+  background: transparent;
+  color: var(--pale-blue);
+}
+
+@media (max-width: 640px) {
+  .shell {
+    padding: 24px 16px 48px;
+  }
+
+  .auth-shell {
+    padding-top: 32px;
+  }
+
+  .topbar {
+    flex-direction: column;
+  }
+
+  .panel {
+    padding: 20px;
+  }
+}
