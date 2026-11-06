@@ -1,0 +1,13 @@
+{
+  "name": "awssbgjru",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "postinstall": "npm install --prefix frontend",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^6.1.0",
+    "vite": "^8.2.2"
+  }
+}
