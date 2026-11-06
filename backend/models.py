@@ -22,12 +22,16 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     username: Mapped[str] = mapped_column(String(80), unique=True, index=True)
+    email: Mapped[Optional[str]] = mapped_column(String(255), unique=True, nullable=True, index=True)
     password: Mapped[str] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(20))
+    failed_logins: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    locked_until: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     events: Mapped[list[Event]] = relationship(back_populates="organizer")
     checkins: Mapped[list[CheckIn]] = relationship(back_populates="attendee")
     sessions: Mapped[list[SessionToken]] = relationship(back_populates="user")
+    auth_codes: Mapped[list["AuthCode"]] = relationship(back_populates="user")
 
 
 class SessionToken(Base):
@@ -37,8 +41,24 @@ class SessionToken(Base):
     token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
 
     user: Mapped[User] = relationship(back_populates="sessions")
+
+
+class AuthCode(Base):
+    __tablename__ = "auth_codes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    purpose: Mapped[str] = mapped_column(String(20))
+    code_hash: Mapped[str] = mapped_column(String(64))
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+    used: Mapped[bool] = mapped_column(Boolean, default=False)
+    attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
+    user: Mapped[User] = relationship(back_populates="auth_codes")
 
 
 class Event(Base):

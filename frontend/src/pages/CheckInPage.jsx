@@ -45,7 +45,9 @@ export default function CheckInPage() {
     return (
       <main className="shell">
         <section className="panel">
-          <p className="error">Log in as an attendee to check in.</p>
+          <p className="error" role="alert">
+            Log in as an attendee to check in.
+          </p>
           <p className="hint">
             <Link to="/organizer">Back to organizer desk</Link>
           </p>
@@ -88,7 +90,11 @@ export default function CheckInPage() {
         </div>
 
         {status && <p className="ok">{status}</p>}
-        {error && <p className="error">{error}</p>}
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
 
         <p className="hint">
           One check-in per account. Closed events stay closed.

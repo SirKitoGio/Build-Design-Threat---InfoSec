@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState } from 'react'
+import { api } from './api'
 
 const AuthContext = createContext(null)
 
@@ -21,7 +22,12 @@ export function AuthProvider({ children }) {
         setToken(data.token)
         setUser(data.user)
       },
-      logout() {
+      async logout() {
+        try {
+          await api.logout()
+        } catch {
+          // The browser session is cleared either way.
+        }
         localStorage.removeItem('token')
         localStorage.removeItem('user')
         localStorage.removeItem('password_storage')

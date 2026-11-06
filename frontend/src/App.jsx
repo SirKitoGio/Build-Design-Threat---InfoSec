@@ -4,6 +4,7 @@ import { useAuth } from './auth'
 import AttendeePage from './pages/AttendeePage'
 import AuthPage from './pages/AuthPage'
 import CheckInPage from './pages/CheckInPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import OrganizerPage from './pages/OrganizerPage'
 
 class RouteGuard extends Component {
@@ -55,13 +56,19 @@ function Home() {
 export default function App() {
   return (
     <RouteGuard>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/organizer" element={<OrganizerPage />} />
-        <Route path="/attendee" element={<AttendeePage />} />
-        <Route path="/checkin/:token" element={<CheckInPage />} />
-      </Routes>
+      <a className="skip" href="#content">
+        Skip to content
+      </a>
+      <div id="content">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/forgot" element={<ForgotPasswordPage />} />
+          <Route path="/organizer" element={<OrganizerPage />} />
+          <Route path="/attendee" element={<AttendeePage />} />
+          <Route path="/checkin/:token" element={<CheckInPage />} />
+        </Routes>
+      </div>
     </RouteGuard>
   )
 }

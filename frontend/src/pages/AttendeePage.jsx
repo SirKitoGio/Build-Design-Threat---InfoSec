@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import AppNav from '../AppNav'
 import { api } from '../api'
 import { useAuth } from '../auth'
 import QrScanner, { tokenFromScan } from '../QrScanner'
@@ -38,19 +39,11 @@ export default function AttendeePage() {
 
   return (
     <main className="shell">
-      <header className="topbar">
-        <div>
-          <p className="org-mark">TaranTech</p>
-          <p className="eyebrow">Attendee</p>
-          <h1>Check in</h1>
-        </div>
-        <div className="topbar-actions">
-          <span className="pill">{user.username}</span>
-          <button type="button" onClick={logout}>
-            Log out
-          </button>
-        </div>
-      </header>
+      <AppNav
+        role="Attendee"
+        title="Check in"
+        onLogout={logout}
+      />
 
       <div className="grid-2">
         <section className="panel panel-delay-1">
@@ -71,7 +64,7 @@ export default function AttendeePage() {
                 <input
                   value={paste}
                   onChange={(e) => setPaste(e.target.value)}
-                  placeholder="http://127.0.0.1:5173/checkin/…"
+                  placeholder="Paste a check-in link"
                 />
               </label>
               <button className="primary" type="submit">
@@ -79,7 +72,11 @@ export default function AttendeePage() {
               </button>
             </form>
           )}
-          {error && <p className="error">{error}</p>}
+          {error && (
+            <p className="error" role="alert">
+              {error}
+            </p>
+          )}
         </section>
 
         <section className="panel panel-delay-2">

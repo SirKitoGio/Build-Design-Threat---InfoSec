@@ -1,4 +1,4 @@
-const API = ''
+const API = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
 
 function authHeaders() {
   const token = localStorage.getItem('token')
@@ -39,6 +39,18 @@ export const api = {
     request('/api/register', { method: 'POST', body: JSON.stringify(body) }),
   login: (body) =>
     request('/api/login', { method: 'POST', body: JSON.stringify(body) }),
+  loginMfa: (body) =>
+    request('/api/login/mfa', { method: 'POST', body: JSON.stringify(body) }),
+  resendMfa: (body) =>
+    request('/api/login/mfa/resend', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  forgotPassword: (body) =>
+    request('/api/forgot', { method: 'POST', body: JSON.stringify(body) }),
+  resetPassword: (body) =>
+    request('/api/reset', { method: 'POST', body: JSON.stringify(body) }),
+  logout: () => request('/api/logout', { method: 'POST', body: '{}' }),
   me: () => request('/api/me'),
   listEvents: () => request('/api/events'),
   createEvent: (body) =>

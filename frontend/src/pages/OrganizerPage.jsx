@@ -1,11 +1,38 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
+import AppNav from '../AppNav'
 import { api } from '../api'
 import { useAuth } from '../auth'
 
+function EventList({ events, selectedId, onOpen }) {
+  return (
+    <ul className="event-list">
+      {events.map((event) => (
+        <li key={event.id}>
+          <button
+            type="button"
+            className={event.id === selectedId ? 'is-current' : ''}
+            onClick={() => onOpen(event)}
+          >
+            {event.title}
+            {event.is_closed ? (
+              <span className="pill danger">Closed</span>
+            ) : (
+              <span className="pill ok">Open</span>
+            )}
+          </button>
+        </li>
+      ))}
+      {events.length === 0 && (
+        <li className="muted">No events yet. Create one to get a QR code.</li>
+      )}
+    </ul>
+  )
+}
+
 export default function OrganizerPage() {
-  const { user, logout, passwordStorage } = useAuth()
+  const { user, logout } = useAuth()
   const [events, setEvents] = useState([])
   const [selected, setSelected] = useState(null)
   const [attendance, setAttendance] = useState([])
@@ -14,6 +41,8 @@ export default function OrganizerPage() {
   const [endsAt, setEndsAt] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [armClose, setArmClose] = useState(false)
+  const [showCreate, setShowCreate] = useState(false)
 
   async function refresh() {
     const list = await api.listEvents()
@@ -46,6 +75,7 @@ export default function OrganizerPage() {
       setTitle('')
       setDescription('')
       setEndsAt('')
+      setShowCreate(false)
       setMessage(`Created “${created.title}”`)
       setSelected(created)
       await refresh()
@@ -58,6 +88,8 @@ export default function OrganizerPage() {
 
   async function openEvent(event) {
     setSelected(event)
+    setArmClose(false)
+    setShowCreate(false)
     setError('')
     setMessage('')
     try {
@@ -69,10 +101,15 @@ export default function OrganizerPage() {
   }
 
   async function closeSelected() {
-    if (!selected) return
+    if (!selected || selected.is_closed) return
+    if (!armClose) {
+      setArmClose(true)
+      return
+    }
     try {
       const updated = await api.closeEvent(selected.id)
       setSelected(updated)
+      setArmClose(false)
       setMessage('Check-in is closed for this event.')
       await refresh()
     } catch (err) {
@@ -84,175 +121,219 @@ export default function OrganizerPage() {
     ? `${window.location.origin}/checkin/${selected.checkin_token}`
     : ''
 
-  return (
-    <main className="shell">
-      <header className="topbar">
-        <div>
-          <p className="org-mark">TaranTech</p>
-          <p className="eyebrow">Organizer</p>
-          <h1>Event desk</h1>
+  const createForm = (
+    <form onSubmit={createEvent} className="stack">
+      <label>
+        Title
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          placeholder="Club Night"
+        />
+      </label>
+      <label>
+        Description
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+          placeholder="Optional notes for attendees"
+        />
+      </label>
+      <label>
+        Ends at (optional)
+        <input
+          type="datetime-local"
+          value={endsAt}
+          onChange={(e) => setEndsAt(e.target.value)}
+        />
+      </label>
+      <button className="primary" type="submit">
+        Create and show QR
+      </button>
+    </form>
+  )
+
+  const notices = (
+    <>
+      {message && (
+        <p className="ok" role="status">
+          {message}
+        </p>
+      )}
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
+    </>
+  )
+
+  const livePanel = selected && (
+    <section className="panel panel-delay-1">
+      <div className="event-head">
+        <h2>{selected.title}</h2>
+        <p className="meta">
+          <span className={`pill ${selected.is_closed ? 'danger' : 'ok'}`}>
+            {selected.is_closed ? 'Closed' : 'Open'}
+          </span>
+          <span className="muted">
+            {attendance.length} checked in
+          </span>
+        </p>
+      </div>
+      {selected.description ? (
+        <p className="muted">{selected.description}</p>
+      ) : null}
+      {selected.ends_at ? (
+        <p className="muted">
+          Ends {new Date(selected.ends_at).toLocaleString()}
+        </p>
+      ) : null}
+
+      <div className="qr-wrap qr-wrap-live">
+        <QRCodeSVG
+          value={checkinUrl}
+          size={320}
+          level="M"
+          includeMargin
+          bgColor="#FFFFFF"
+          fgColor="#192853"
+        />
+      </div>
+      <p className="mono">
+        Check-in link
+        <br />
+        <a href={checkinUrl}>{checkinUrl}</a>
+      </p>
+      <div className="row" style={{ marginTop: 8 }}>
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(checkinUrl)
+              setMessage('Link copied. An attendee can paste it on desktop.')
+            } catch {
+              setError('Could not copy. Select the link instead.')
+            }
+          }}
+        >
+          Copy link
+        </button>
+      </div>
+
+      {armClose ? (
+        <div className="close-confirm">
+          <p>Attendees will not be able to check in.</p>
+          <div className="row">
+            <button className="danger" type="button" onClick={closeSelected}>
+              Confirm close
+            </button>
+            <button type="button" onClick={() => setArmClose(false)}>
+              Cancel
+            </button>
+          </div>
         </div>
-        <div className="topbar-actions">
-          <span className="pill">{user.username}</span>
-          <span className="pill ok">pw · {passwordStorage || 'bcrypt+salt'}</span>
-          <button type="button" onClick={logout}>
-            Log out
+      ) : (
+        <div className="row">
+          <button
+            type="button"
+            onClick={closeSelected}
+            disabled={selected.is_closed}
+          >
+            {selected.is_closed ? 'Check-in closed' : 'Close check-in'}
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              const rows = await api.attendance(selected.id)
+              setAttendance(rows)
+            }}
+          >
+            Refresh list
           </button>
         </div>
-      </header>
+      )}
 
-      <div className="grid-2">
-        <section className="panel panel-delay-1">
-          <h2>New event</h2>
-          <form onSubmit={createEvent} className="stack">
-            <label>
-              Title
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                placeholder="Club Night"
-              />
-            </label>
-            <label>
-              Description
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                placeholder="Optional notes for attendees"
-              />
-            </label>
-            <label>
-              Ends at (optional)
-              <input
-                type="datetime-local"
-                value={endsAt}
-                onChange={(e) => setEndsAt(e.target.value)}
-              />
-            </label>
-            <button className="primary" type="submit">
-              Create and show QR
-            </button>
-          </form>
+      {notices}
 
-          <h2 className="mt">Your events</h2>
-          <ul className="event-list">
-            {events.map((event, i) => (
-              <li key={event.id} style={{ '--i': i }}>
-                <button type="button" onClick={() => openEvent(event)}>
-                  {event.title}
-                  {event.is_closed ? (
-                    <span className="pill danger" style={{ marginLeft: 8 }}>
-                      Closed
-                    </span>
-                  ) : (
-                    <span className="pill ok" style={{ marginLeft: 8 }}>
-                      Open
-                    </span>
-                  )}
-                </button>
-              </li>
-            ))}
-            {events.length === 0 && (
-              <li className="muted">No events yet. Create one to get a QR code.</li>
-            )}
-          </ul>
-        </section>
+      <h3 className="mt">Attendance</h3>
+      <ul className="event-list">
+        {attendance.map((row) => (
+          <li key={row.id}>
+            {row.attendee_username}{' '}
+            <span className="muted">
+              {new Date(row.checked_in_at).toLocaleString()}
+            </span>
+          </li>
+        ))}
+        {attendance.length === 0 && (
+          <li className="muted">Waiting for the first scan.</li>
+        )}
+      </ul>
+    </section>
+  )
 
-        <section className="panel panel-delay-2">
-          {!selected ? (
-            <p className="muted">
-              Create an event. The QR encodes a random token, not a sequential
-              id.
-            </p>
-          ) : (
+  const sidePanel = (
+    <section className={`panel ${selected ? 'panel-delay-2' : 'panel-delay-1'}`}>
+      {selected ? (
+        <>
+          <h2>Your events</h2>
+          <EventList
+            events={events}
+            selectedId={selected.id}
+            onOpen={openEvent}
+          />
+          {showCreate ? (
             <>
-              <p className="eyebrow">Live QR</p>
-              <h2>{selected.title}</h2>
-              <p className="muted">
-                {selected.description || 'No description'}
-              </p>
-              <p className="meta">
-                <span
-                  className={`pill ${selected.is_closed ? 'danger' : 'ok'}`}
-                >
-                  {selected.is_closed ? 'Closed' : 'Open'}
-                </span>
-                {selected.ends_at
-                  ? `  ends ${new Date(selected.ends_at).toLocaleString()}`
-                  : ''}
-              </p>
-
-              <div className="qr-wrap">
-                <QRCodeSVG
-                  value={checkinUrl}
-                  size={220}
-                  level="M"
-                  includeMargin
-                  bgColor="#FFFFFF"
-                  fgColor="#111111"
-                />
-              </div>
-              <p className="mono">
-                Check-in link
-                <br />
-                <a href={checkinUrl}>{checkinUrl}</a>
-              </p>
-              <div className="row" style={{ marginTop: 8 }}>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(checkinUrl)
-                      setMessage('Link copied. An attendee can paste it on desktop.')
-                    } catch {
-                      setError('Could not copy. Select the link instead.')
-                    }
-                  }}
-                >
-                  Copy link
-                </button>
-              </div>
-
-              <div className="row">
-                <button
-                  type="button"
-                  onClick={closeSelected}
-                  disabled={selected.is_closed}
-                >
-                  Close check-in
-                </button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const rows = await api.attendance(selected.id)
-                    setAttendance(rows)
-                  }}
-                >
-                  Refresh list
-                </button>
-              </div>
-
-              <h3 className="mt">Attendance ({attendance.length})</h3>
-              <ul className="event-list">
-                {attendance.map((row, i) => (
-                  <li key={row.id} style={{ '--i': i }}>
-                    {row.attendee_username}{' '}
-                    <span className="muted">
-                      {new Date(row.checked_in_at).toLocaleString()}
-                    </span>
-                  </li>
-                ))}
-                {attendance.length === 0 && (
-                  <li className="muted">Waiting for the first scan.</li>
-                )}
-              </ul>
+              <h2 className="mt">New event</h2>
+              {createForm}
+              <button
+                type="button"
+                className="text-link"
+                onClick={() => setShowCreate(false)}
+              >
+                Cancel
+              </button>
             </>
+          ) : (
+            <div className="row">
+              <button type="button" onClick={() => setShowCreate(true)}>
+                New event
+              </button>
+            </div>
           )}
-          {message && <p className="ok">{message}</p>}
-          {error && <p className="error">{error}</p>}
-        </section>
+        </>
+      ) : (
+        <>
+          <h2>New event</h2>
+          {createForm}
+          <h2 className="mt">Your events</h2>
+          <EventList events={events} selectedId={null} onOpen={openEvent} />
+        </>
+      )}
+      {!selected && notices}
+    </section>
+  )
+
+  return (
+    <main className="shell">
+      <AppNav
+        role="Organizer"
+        title="Event desk"
+        onLogout={logout}
+      />
+
+      <div className={`grid-2${selected ? ' is-live' : ''}`}>
+        {selected ? livePanel : sidePanel}
+        {selected ? sidePanel : (
+          <section className="panel panel-delay-2">
+            <p className="muted">
+              Create an event to put a QR on the door.
+            </p>
+          </section>
+        )}
       </div>
     </main>
   )
